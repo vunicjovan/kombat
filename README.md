@@ -13,7 +13,7 @@ pip install kombat
 ## Usage
 
 ```python
-from kombat import SystemCrawler
+from kombat.crawlers.system_crawler import SystemCrawler
 
 crawler = SystemCrawler()
 crawler.build_hierarchy("/path/to/directory")
