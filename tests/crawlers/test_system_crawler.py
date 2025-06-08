@@ -10,8 +10,6 @@ class TestSystemCrawler(unittest.TestCase):
     def setUp(self):
         self.crawler = SystemCrawler()
         self.test_dir = tempfile.mkdtemp()
-
-        # Create test files and directories
         self.create_test_environment()
 
     def tearDown(self):
@@ -23,11 +21,18 @@ class TestSystemCrawler(unittest.TestCase):
         self.create_file("file1.txt", "content1")
         self.create_file("file2.txt", "content1")  # Duplicate of file1
         self.create_file("doc.pdf", "pdf content")
+        self.create_file("image.jpg", "image content")
 
-        # Create subdirectory with files
+        # Create first level subdirectory with files
         os.makedirs(os.path.join(self.test_dir, "subdir"))
         self.create_file(os.path.join("subdir", "sub_file.txt"), "subcontent")
-        self.create_file(os.path.join("subdir", "another.pdf"), "pdf content")  # Duplicate of doc.pdf
+        self.create_file(os.path.join("subdir", "another.pdf"), "pdf content")
+        self.create_file(os.path.join("subdir", "photo.jpg"), "photo content")
+
+        # Create second level subdirectory with files
+        os.makedirs(os.path.join(self.test_dir, "subdir", "subsubdir"))
+        self.create_file(os.path.join("subdir", "subsubdir", "deep_file.txt"), "deep content")
+        self.create_file(os.path.join("subdir", "subsubdir", "deep.pdf"), "deep pdf")
 
         # Create empty directory
         os.makedirs(os.path.join(self.test_dir, "empty_dir"))
@@ -153,6 +158,82 @@ class TestSystemCrawler(unittest.TestCase):
         ]
         self.assertEqual(sorted(headers), sorted(expected_headers))
         self.assertGreater(len(rows), 0)
+
+    def test_depth_zero(self):
+        """Test hierarchy building with depth=0 (root level only)."""
+        self.crawler.build_hierarchy(self.test_dir, depth=0)
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check that only root level files are included
+        self.assertIn("files", self.crawler.hierarchy[root_dir])
+        self.assertEqual(len(self.crawler.hierarchy[root_dir]["directories"]), 0)
+
+        # Verify root level files are present
+        file_count = self.crawler.hierarchy[root_dir]["files"]["count"]
+        self.assertEqual(file_count, 4)  # file1.txt, file2.txt, doc.pdf, image.jpg
+
+    def test_depth_one(self):
+        """Test hierarchy building with depth=1 (root and first level)."""
+        self.crawler.build_hierarchy(self.test_dir, depth=1)
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check first level directory is included
+        self.assertIn("subdir", self.crawler.hierarchy[root_dir]["directories"])
+
+        # Check second level directory is not included
+        subdir = self.crawler.hierarchy[root_dir]["directories"]["subdir"]
+        self.assertEqual(len(subdir.get("directories", {})), 0)
+
+    def test_extension_filtering_single(self):
+        """Test hierarchy building with single extension filter."""
+        self.crawler.build_hierarchy(self.test_dir, extensions={".txt"})
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check only .txt files are included
+        extensions = set(self.crawler.hierarchy[root_dir]["files"]["by_extension"].keys())
+        self.assertEqual(extensions, {".txt"})
+
+        # Verify .pdf and .jpg files are not included
+        self.assertNotIn(".pdf", extensions)
+        self.assertNotIn(".jpg", extensions)
+
+    def test_extension_filtering_multiple(self):
+        """Test hierarchy building with multiple extension filters."""
+        self.crawler.build_hierarchy(self.test_dir, extensions={".txt", ".pdf"})
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check only .txt and .pdf files are included
+        extensions = set(self.crawler.hierarchy[root_dir]["files"]["by_extension"].keys())
+        self.assertEqual(extensions, {".txt", ".pdf"})
+
+        # Verify .jpg files are not included
+        self.assertNotIn(".jpg", extensions)
+
+    def test_extension_filtering_with_depth(self):
+        """Test hierarchy building with both extension filtering and depth limit."""
+        self.crawler.build_hierarchy(self.test_dir, extensions={".txt"}, depth=1)
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check root level
+        root_extensions = set(self.crawler.hierarchy[root_dir]["files"]["by_extension"].keys())
+        self.assertEqual(root_extensions, {".txt"})
+
+        # Check first level
+        subdir = self.crawler.hierarchy[root_dir]["directories"]["subdir"]
+        subdir_extensions = set(subdir["files"]["by_extension"].keys())
+        self.assertEqual(subdir_extensions, {".txt"})
+
+        # Verify second level is not included
+        self.assertEqual(len(subdir.get("directories", {})), 0)
+
+    def test_extension_case_insensitive(self):
+        """Test extension filtering is case-insensitive."""
+        self.crawler.build_hierarchy(self.test_dir, extensions={".TXT", ".PDF"})
+        root_dir = os.path.basename(self.test_dir)
+
+        # Check extensions are properly normalized
+        extensions = set(self.crawler.hierarchy[root_dir]["files"]["by_extension"].keys())
+        self.assertEqual(extensions, {".txt", ".pdf"})
 
 
 if __name__ == "__main__":
