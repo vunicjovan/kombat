@@ -25,6 +25,11 @@ class HTMLService:
         with open(css_path, 'r', encoding='utf-8') as f:
             css_styles = f.read()
 
+        # Load JavaScript logic
+        js_path = os.path.join(os.path.dirname(__file__), "resources/js/html_tree_logic.js")
+        with open(js_path, 'r', encoding='utf-8') as f:
+            js_logic = f.read()
+
         # Prepare data for HTML
         hierarchy_root_path = hierarchy.hierarchy_root_path
         hierarchy_json = json.dumps(hierarchy)
@@ -62,8 +67,14 @@ class HTMLService:
         # Replace placeholders in HTML template
         html_content = html_template.replace("ROOT_PATH", hierarchy_root_path)
         html_content = html_content.replace("CSS_STYLES", css_styles)
-        html_content = html_content.replace("HIERARCHY_DATA_PLACEHOLDER", hierarchy_json)
         html_content = html_content.replace("SUMMARY_STATISTICS_PLACEHOLDER", summary_html)
+        html_content = html_content.replace("JAVASCRIPT_LOGIC", js_logic)
+
+        # Add hierarchy data as a data attribute to the hierarchy div
+        html_content = html_content.replace(
+            '<div id="hierarchy" class="split-left"></div>',
+            f'<div id="hierarchy" class="split-left" data-hierarchy-data=\'{hierarchy_json}\'></div>',
+        )
 
         # Write the HTML file
         with open(output_path, 'w', encoding='utf-8') as f:

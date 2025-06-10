@@ -42,3 +42,27 @@
     font-family: Arial, sans-serif;
     padding: 20px;
 }
+
+/* Split screen styles */
+.split-container {
+    display: flex;
+    height: 80vh; /* Adjust as needed */
+}
+
+.split-left {
+    width: 50%;
+    overflow: auto;
+    padding-right: 10px;
+}
+
+.split-right {
+    width: 50%;
+    overflow: auto;
+    padding-left: 10px;
+}
+
+.split-divider {
+    width: 5px;
+    background: #ccc;
+    cursor: col-resize;
+}
