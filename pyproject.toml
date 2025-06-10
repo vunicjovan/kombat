@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kombat"
-version = "0.1.1"
+version = "0.1.3"
 authors = [
-    { name = "Jovan Vunic", email = "your.email@example.com" },
+    { name = "Jovan Vunic", email = "vunicjovan@gmail.com" },
 ]
 description = "A Python library for crawling and analyzing file system hierarchies"
 readme = "README.md"

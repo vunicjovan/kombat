@@ -1,0 +1,44 @@
+.tree-node {
+    margin-left: 20px;
+}
+.expandable {
+    cursor: pointer;
+    user-select: none;
+}
+.expandable::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: 6px;
+    transition: transform 0.2s;
+}
+.expanded::before {
+    transform: rotate(90deg);
+}
+.hidden {
+    display: none;
+}
+.file-node {
+    margin-left: 26px;
+}
+.directory {
+    color: #2c3e50;
+    font-weight: bold;
+}
+.file {
+    color: #34495e;
+}
+.file-ext {
+    color: #7f8c8d;
+}
+.metadata {
+    font-size: 0.9em;
+    color: #95a5a6;
+    margin-left: 10px;
+}
+.duplicate {
+    color: #e74c3c;
+}
+.container {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
